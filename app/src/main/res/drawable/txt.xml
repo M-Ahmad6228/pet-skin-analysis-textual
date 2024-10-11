@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer black shape for the corners -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" /> <!-- Rounded corners -->
+            <solid android:color="#686565" /> <!-- Black corners -->
+        </shape>
+    </item>
+
+    <!-- Inner white shape for the inside -->
+    <item android:left="3dp" android:right="3dp" android:top="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="5dp" /> <!-- Slightly smaller radius to create a border effect -->
+            <solid android:color="#FFFFFF" /> <!-- White inside -->
+        </shape>
+    </item>
+
+</layer-list>
