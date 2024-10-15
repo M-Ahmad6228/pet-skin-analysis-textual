@@ -33,9 +33,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var diseaseInfoList: List<DiseaseInfo> // Declare without initialization
     val py: PyObject = Python.getInstance().getModule("labelencoder")
 
-
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,15 +41,12 @@ class MainActivity : ComponentActivity() {
         predictButton = findViewById(R.id.predict_button)
         resultText = findViewById(R.id.result_text)
 
-
         try {
             tflite = Interpreter(loadModelFile("pet_model.tflite"))
             tokenizer = loadTokenizer(this)  // Load tokenizer here
             diseaseInfoList = loadDiseaseData("pet_skin_diseases.csv")
-            val labels = diseaseInfoList.map { it.disease }
-            py.callAttr("fit_encoder", labels)
-
-
+//            val labels = diseaseInfoList.map { it.disease }
+//            py.callAttr("fit_encoder", labels)
         } catch (e: IOException) {
             Toast.makeText(
                 this,
@@ -88,7 +82,7 @@ class MainActivity : ComponentActivity() {
         return try {
             // Reading the JSON file from the assets folder
             val tokenizerJson =
-                context.assets.open("tokenizer_pet.json").bufferedReader().use { it.readText() }
+                context.assets.open("tokenizer_file.json").bufferedReader().use { it.readText() }
             val jsonObject = JSONObject(tokenizerJson)
 
             // Getting the 'config' object from the JSON
@@ -142,22 +136,6 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
         return diseaseInfoList
-
-//        val diseaseInfoList = mutableListOf<DiseaseInfo>()
-//        try {
-//            val inputStream = assets.open(fileName)
-//            val reader = BufferedReader(InputStreamReader(inputStream))
-//            reader.readLine() // Skip header line if present
-//            reader.forEachLine { line ->
-//                val parts = line.split(",")
-//                if (parts.size >= 4) {
-//                    diseaseInfoList.add(DiseaseInfo(parts[0], parts[1], parts[2], parts[3], parts[4]))
-//                }
-//            }
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
-//        return diseaseInfoList
     }
 
     private fun predictDisease(behavior: String): String {
@@ -165,6 +143,7 @@ class MainActivity : ComponentActivity() {
         // Convert behavior text to sequences and pad them
         val seq = textsToSequences(behavior)
         val padded = padSequences(seq)
+//        py.callAttr("fit_encoder", diseaseInfoList.map { it.disease })
 
         if (padded == null) {
             return "Error padding sequences."
@@ -183,11 +162,15 @@ class MainActivity : ComponentActivity() {
 
         // Get the predicted class index with the highest score
         val predictedClassIndex = predictions[0].indices.maxByOrNull { predictions[0][it] } ?: -1
+        val labels = diseaseInfoList.map { it.disease }
+        val labelsArray: Array<String> = labels.toTypedArray()
 
         // Decode the predicted class using the Python function
         return try {
-            val decodedLabels: PyObject = py.callAttr("decode_labels", arrayOf(predictedClassIndex))
-            val resultString = decodedLabels.toString()
+            val decodedLabels: PyObject =
+                py.callAttr("decode_labels", labelsArray, arrayOf(predictedClassIndex))
+            val resultString =
+                decodedLabels.toString().replace("[", "").replace("]", "").replace("'", "")
             // Find the predicted disease based on the decoded label
             val predictedDisease = diseaseInfoList.find { it.disease.equals(resultString, true) }
 
@@ -203,7 +186,6 @@ class MainActivity : ComponentActivity() {
             "Error decoding label: ${e.message}"
         }
     }
-
 
     // Convert the behavior text to a sequence of integers using the tokenizer
     private fun textsToSequences(text: String): List<Int> {

@@ -70,8 +70,7 @@ chaquopy {
 
 
     defaultConfig {
-        buildPython("C:/Users/Shayan/AppData/Local/Programs/Python/Python38/python.exe")
-//        buildPython("C:/path/to/py.exe", "-3.8")
+        buildPython("C:/Users/ahmad.muzaffar/AppData/Local/Programs/Python/Python312/python.exe")
 
         pip {
             // A requirement specifier, with or without a version number:
